@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertebrate Identifier Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f4f9; }
+        h1 { color: #2c3e50; text-align: center; }
+        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .characteristic-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        .characteristic-list label { display: block; background-color: #ecf0f1; padding: 10px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
+        .characteristic-list input:checked + label { background-color: #3498db; color: white; border: 2px solid #2980b9; }
+        input[type="checkbox"] { display: none; }
+        button { background-color: #2ecc71; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; transition: background-color 0.2s; }
+        button:hover { background-color: #27ad60; }
+        #results { margin-top: 20px; padding: 15px; border-radius: 4px; font-weight: bold; }
+        .success { background-color: #e6ffe6; border: 1px solid #00cc00; color: #008000; }
+        .warning { background-color: #fff8e1; border: 1px solid #ffc107; color: #cc8400; }
+        .error { background-color: #ffe6e6; border: 1px solid #cc0000; color: #cc0000; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🔍 Vertebrate Identifier</h1>
+        <p>Select **three** characteristics that describe the animal to identify its group.</p>
+        <hr>
+
+        <div id="characteristic-list" class="characteristic-list">
+            </div>
+
+        <button onclick="checkClassification()">Identify Group</button>
+
+        <div id="results">
+            Select three options and press "Identify Group" to start.
+        </div>
+    </div>
+
+    <script>
+        // 1. DATA: Define the characteristics for each vertebrate group
+        const GROUPS = {
+            'Mammals': ['Body temperature does not change with surrounding', 'With hair/Fur', 'Gives birth to live young', 'Mammary glands', 'Lungs for breathing'],
+            'Birds': ['Body temperature does not change with surrounding', 'With feathers', 'Lay eggs', 'Beak', 'Lungs for breathing', 'Wing'],
+            'Reptiles': ['Body temperature changes with surrounding', 'Dry scales', 'Lay eggs', 'Lungs for breathing', 'Internal fertilization'],
+            'Amphibians': ['Body temperature changes with surrounding', 'Moist, smooth skin', 'Lay eggs', 'Skin for breathing', 'Lungs for breathing', 'Gills for breathing'],
+            'Fish': ['Body temperature changes with surrounding', 'Wet scales/Slime', 'Lay eggs', 'Fins', 'Gills for breathing']
+        };
+
+        // 2. DATA: The full list of characteristic options for the user
+        const ALL_CHARACTERISTICS = [
+            'Body temperature does not change with surrounding', 'Body temperature changes with surrounding', 'With hair/Fur', 'With feathers',
+            'Dry scales', 'Moist, smooth skin', 'Gills for breathing', 'Lungs for breathing',
+            'Gives birth to live young', 'Lay eggs', 'Skin for breathing', 'Wing',
+            'Mammary glands', 'Beak', 'Wet scales','Fins' 
+        ];
+
+        // Function to dynamically create the characteristic checkboxes
+        function renderCharacteristics() {
+            const listContainer = document.getElementById('characteristic-list');
+            listContainer.innerHTML = ALL_CHARACTERISTICS.map((char, index) => `
+                <div>
+                    <input type="checkbox" id="char${index}" value="${char}" name="characteristic">
+                    <label for="char${index}">${char}</label>
+                </div>
+            `).join('');
+        }
+
+        // 3. LOGIC: Main function to check the classification
+        function checkClassification() {
+            const selectedBoxes = document.querySelectorAll('input[name="characteristic"]:checked');
+            const selectedChars = Array.from(selectedBoxes).map(cb => cb.value);
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.className = '';
+
+            // --- A. VALIDATION: Ensure exactly 3 are selected ---
+            if (selectedChars.length !== 3) {
+                resultsDiv.classList.add('error');
+                resultsDiv.innerHTML = `**Error:** Please select **exactly three** characteristics. You selected ${selectedChars.length}.`;
+                return;
+            }
+
+            // --- B. CLASSIFICATION: Find groups that match all selected characteristics ---
+            const matchingGroups = [];
+            const allGroups = Object.keys(GROUPS);
+
+            for (const group of allGroups) {
+                // Check if ALL selected characteristics are present in the group's definition
+                const isMatch = selectedChars.every(char => GROUPS[group].includes(char) || GROUPS[group].some(groupChar => groupChar.includes(char.split('(')[0].trim())));
+                
+                if (isMatch) {
+                    matchingGroups.push(group);
+                }
+            }
+            
+            // --- C. FEEDBACK: Display results ---
+
+            if (matchingGroups.length === 1) {
+                // Successful Identification
+                resultsDiv.classList.add('success');
+                resultsDiv.innerHTML = `✅ **CORRECT!**<br>The animal belongs to the group: **${matchingGroups[0]}**.<br>All three characteristics uniquely identify this group.`;
+            } else if (matchingGroups.length > 1) {
+                // Narrowed Possibilities (Ambiguous)
+                resultsDiv.classList.add('warning');
+                resultsDiv.innerHTML = `⚠️ **AMBIGUOUS.**<br>Your selected characteristics fit **${matchingGroups.length}** possible groups: **${matchingGroups.join(', ')}**.<br>Try selecting more specific characteristics to distinguish them!`;
+            } else {
+                // Incorrect/Contradictory Selection
+                resultsDiv.classList.add('error');
+                resultsDiv.innerHTML = `❌ **INCORRECT.**<br>The selected characteristics do not logically belong to any single vertebrate group. Please review the characteristics for each group.`;
+            }
+
+            // Uncheck boxes for the next round
+            selectedBoxes.forEach(cb => cb.checked = false);
+        }
+
+        // Initialize the game when the page loads
+        window.onload = renderCharacteristics;
+    </script>
+</body>
+</html>
