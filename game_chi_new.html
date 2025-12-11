@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertebrate Identifier Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f4f9; }
+        h1 { color: #2c3e50; text-align: center; }
+        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .characteristic-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        .characteristic-list label { display: block; background-color: #ecf0f1; padding: 10px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
+        .characteristic-list input:checked + label { background-color: #3498db; color: white; border: 2px solid #2980b9; }
+        input[type="checkbox"] { display: none; }
+        button { background-color: #2ecc71; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; transition: background-color 0.2s; }
+        button:hover { background-color: #27ad60; }
+        #results { margin-top: 20px; padding: 15px; border-radius: 4px; font-weight: bold; }
+        .success { background-color: #e6ffe6; border: 1px solid #00cc00; color: #008000; }
+        .warning { background-color: #fff8e1; border: 1px solid #ffc107; color: #cc8400; }
+        .error { background-color: #ffe6e6; border: 1px solid #cc0000; color: #cc0000; }
+
+        /* Mobile Responsiveness: Media Query */
+        @media (max-width: 600px) {
+            .characteristic-list {
+                grid-template-columns: 1fr; 
+            }
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🔍 這是哪種脊椎動物?</h1>
+        <p>請選擇描述該動物的**最多三個**特徵，以識別其所屬的脊椎動物組別。</p>
+        <hr>
+
+        <div id="characteristic-list" class="characteristic-list">
+            </div>
+
+        <button onclick="checkClassification()">辨認</button>
+
+        <div id="results">
+            選擇最多三個特徵，按"辨認"開始。
+        </div>
+    </div>
+
+    <script>
+        // 1. DATA: Define the characteristics for each vertebrate group
+        const GROUPS = {
+           '哺乳類': ['體溫不會隨環境改變', '有毛髮', '胎生', '有乳腺', '用肺呼吸'],
+            '鳥類': ['體溫不會隨環境改變', '有羽毛', '產卵', '有喙', '用肺呼吸', '有翅膀'],
+            '爬行類': ['體溫隨環境改變', '乾燥的鱗片', '產卵', '用肺呼吸',],
+            '兩棲類': ['體溫隨環境改變', '濕潤的皮膚', '產卵', '用皮膚呼吸', '用肺呼吸', '用鰓呼吸'],
+            '魚類': ['體溫隨環境改變', '濕潤的鱗片', '產卵', '有鰭', '用鰓呼吸']
+        };
+
+        // 2. DATA: The full list of characteristic options for the user
+        const ALL_CHARACTERISTICS = [
+            '體溫不會隨環境改變', '體溫隨環境改變', '有毛髮', '有羽毛',
+            '乾燥的鱗片', '濕潤的鱗片','濕潤的皮膚', '用皮膚呼吸', '用鰓呼吸', '用肺呼吸',
+            '胎生', '產卵', '有翅膀', '有乳腺', '有喙', '有鰭' 
+        ];
+
+        // Function to dynamically create the characteristic checkboxes
+        function renderCharacteristics() {
+            const listContainer = document.getElementById('characteristic-list');
+            listContainer.innerHTML = ALL_CHARACTERISTICS.map((char, index) => `
+                <div>
+                    <input type="checkbox" id="char${index}" value="${char}" name="characteristic">
+                    <label for="char${index}">${char}</label>
+                </div>
+            `).join('');
+            // Add event listener to limit selection count
+            document.querySelectorAll('input[name="characteristic"]').forEach(checkbox => {
+                checkbox.addEventListener('change', limitSelection);
+            });
+        }
+        
+        // Limits the number of characteristics that can be selected to 3
+        function limitSelection() {
+            const selectedBoxes = document.querySelectorAll('input[name="characteristic"]:checked');
+            if (selectedBoxes.length > 3) {
+                this.checked = false; // Uncheck the latest selection
+                alert("You can select a maximum of three characteristics!");
+            }
+        }
+
+        // 3. LOGIC: Main function to check the classification
+        function checkClassification() {
+            const selectedBoxes = document.querySelectorAll('input[name="characteristic"]:checked');
+            // We use the full value for comparison as the definition in GROUPS contains the full text
+            const selectedChars = Array.from(selectedBoxes).map(cb => cb.value); 
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.className = '';
+
+            // --- A. VALIDATION: Ensure between 1 and 3 are selected ---
+            if (selectedChars.length === 0 || selectedChars.length > 3) {
+                resultsDiv.classList.add('error');
+                if (selectedChars.length === 0) {
+                     resultsDiv.innerHTML = `**Error:** Please select at least **one** characteristic.`;
+                } else {
+                    // This error should be caught by limitSelection() but serves as a backup
+                     resultsDiv.innerHTML = `**Error:** You selected ${selectedChars.length} characteristics, but you can choose a maximum of three.`;
+                }
+                return;
+            }
+
+            // --- B. CLASSIFICATION: Find groups that match all selected characteristics ---
+            const matchingGroups = [];
+            const allGroups = Object.keys(GROUPS);
+
+            for (const group of allGroups) {
+                // Check if ALL selected characteristics are present in the group's definition
+                const isMatch = selectedChars.every(char => GROUPS[group].includes(char));
+                
+                if (isMatch) {
+                    matchingGroups.push(group);
+                }
+            }
+            
+            // --- C. FEEDBACK: Display results ---
+
+            if (matchingGroups.length === 1) {
+                // Successful Identification
+                resultsDiv.classList.add('success');
+                resultsDiv.innerHTML = `✅ 該動物屬於： **${matchingGroups[0]}**.<br>該三個特徵全都是這類脊椎動物的特徵。`;
+            } else if (matchingGroups.length > 1) {
+                // Narrowed Possibilities (Ambiguous)
+                resultsDiv.classList.add('warning');
+                resultsDiv.innerHTML = `⚠️ **結果不明確。**<br>您選擇的特徵符合**${matchingGroups.length}** 可能屬於兩個類別: **${matchingGroups.join(', ')}**.<br>試找出更能分辨這類動物的特徵!`;
+            } else {
+                // Incorrect/Contradictory Selection
+                resultsDiv.classList.add('error');
+                resultsDiv.innerHTML = `❌ **錯誤。**<br>您選擇的特徵與任何單一脊椎動物組別的定義都不符。請重新檢視每個組別的特徵。`;
+            }
+
+            // Uncheck boxes for the next round
+            selectedBoxes.forEach(cb => cb.checked = false);
+        }
+
+        // Initialize the game when the page loads
+        window.onload = renderCharacteristics;
+    </script>
+</body>
+</html>
