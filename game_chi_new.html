@@ -126,7 +126,7 @@
             if (matchingGroups.length === 1) {
                 // Successful Identification
                 resultsDiv.classList.add('success');
-                resultsDiv.innerHTML = `✅ 該動物屬於： **${matchingGroups[0]}**.<br>該三個特徵全都是這類脊椎動物的特徵。`;
+                resultsDiv.innerHTML = `✅ 該動物屬於： **${matchingGroups[0]}**.<br>該些特徵全都是這類脊椎動物的特徵。`;
             } else if (matchingGroups.length > 1) {
                 // Narrowed Possibilities (Ambiguous)
                 resultsDiv.classList.add('warning');
@@ -145,4 +145,5 @@
         window.onload = renderCharacteristics;
     </script>
 </body>
+
 </html>
