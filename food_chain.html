@@ -193,7 +193,7 @@
     </div>
 
     <div id="bottom-controls">
-        <button id="brainteaser-button" onclick="showBrainteaser()">Brainteaser: Why are the bars different sizes?</button>
+        <button id="brainteaser-button" onclick="showBrainteaser()">Brainteaser: Why are the bars different sizes? There are usually far fewer foxes (secondary consumer) in an ecosystem than rabbits (primary consumer) and grass (producer).</button>
         <div id="brainteaser-output">
             </div>
     </div>
@@ -257,7 +257,7 @@
 
         function calculateAndApplyCascade(changedLevel, delta) {
             const trendDiv = document.getElementById('trend-display');
-            trendDiv.innerHTML = '<h2>Ecosystem Effects:</h2>'; 
+            trendDiv.innerHTML = '<h2>Effects:</h2>'; 
 
             const changedIndex = getLevelIndex(changedLevel);
             const changeDirection = delta > 0 ? 1 : -1;
@@ -291,7 +291,7 @@
                         reason = effectDirection > 0 ? "Fewer Predators" : "More Predators";
                     } else { 
                         effectDirection = changeDirection;
-                        reason = effectDirection > 0 ? "Indirect Effect / Less Grazing" : "Indirect Effect / More Grazing";
+                        reason = effectDirection > 0 ? "Fewer Predators" : "More Predators";
                     }
                 }
 
@@ -370,13 +370,13 @@
             outputDiv.innerHTML = `
                 <div class="question-box">
                     <h3>Brainteaser: Energy Flow</h3>
-                    <p> Why are there usually far fewer **foxes** in an ecosystem than **rabbits** and **grass**?</p>
+                    <p> Why are there usually far fewer foxes (sencondary consumer) in an ecosystem than rabbits (primary consumer) and grass (producer)?</p>
                     <ol>
                         <li>
                             The number of organisms in each level (trophc level) is related to the amount of energy.
                         </li>
                         <li>
-                            Think about the energy moving from the grass to the fox. Why there is an energy loss?
+                            Think about the energy moving from the grass to the rabbit to the fox. Why there is an energy loss?
                         </li>
                     </ol>
                 </div>
@@ -430,5 +430,4 @@
         };
     </script>
 </body>
-
 </html>
