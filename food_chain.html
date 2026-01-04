@@ -71,7 +71,7 @@
             background-color: #f44336; 
             color: white;
         }
-        /* --- Trend Display Styles (Right Side) --- */
+        /* --- Trend Display Styles --- */
         #trend-display p {
             font-size: 1.1em;
             padding: 8px;
@@ -82,17 +82,11 @@
             align-items: center;
             justify-content: space-between; 
         }
-        #trend-display strong.up {
-            color: green;
-        }
-        #trend-display strong.down {
-            color: red;
-        }
-        /* Highlight organisms (now lowercase) */
-        #trend-display strong.organism {
-            color: #0056b3; /* Blue color for organisms */
-        }
-        /* --- Population Visualizer (Bar Chart on Right) Styles --- */
+        #trend-display strong.up { color: green; }
+        #trend-display strong.down { color: red; }
+        #trend-display strong.organism { color: #0056b3; }
+
+        /* --- Visual Bars --- */
         .population-meter {
             width: 50%; 
             height: 15px;
@@ -107,7 +101,8 @@
             background-color: #2196F3; 
             transition: width 0.5s ease-in-out;
         }
-        /* --- Buttons Below Container --- */
+        
+        /* --- Bottom Section --- */
         #bottom-controls {
             margin-top: 20px;
             padding: 20px;
@@ -117,17 +112,13 @@
             text-align: center;
         }
         #brainteaser-button {
-            background-color: #FF9800; /* Orange */
+            background-color: #FF9800;
             color: white;
             padding: 12px 20px;
             font-size: 1.2em;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        #brainteaser-button:hover {
-            background-color: #E68900;
         }
         .question-box {
             padding: 15px;
@@ -137,34 +128,25 @@
             margin-top: 15px;
             text-align: left;
         }
-        .question-box ol {
-            padding-left: 20px;
-        }
         #learn-more-button {
-            background-color: #00BCD4; /* Cyan */
+            background-color: #00BCD4;
             color: white;
             padding: 10px 15px;
             margin-top: 15px;
-            font-size: 1em;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.3s;
-            display: block; /* Make it take full width of the box */
             width: 100%;
         }
-        #learn-more-button:hover {
-            background-color: #00ACC1;
-        }
-        /* --- Reset Button Style (Standardized) --- */
         #trends button {
             display: block;
             width: 100%;
             margin-top: 10px;
             padding: 10px 12px; 
-            font-size: 1em; 
             background-color: #9E9E9E;
             color: white;
+            border: none;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -173,61 +155,40 @@
     <div class="food-chain-diagram">
         Producer (Grass) &longrightarrow; Primary Consumer (Rabbit) &longrightarrow; Secondary Consumer (Fox)
     </div>
-    
-
-[Image of food chain showing Grass Rabbit Fox]
 
     <div class="container">
         <div id="controls">
             <h2>Ecosystem Controls</h2>
             <p class="instruction">Click a button to change a population.</p>
-            <div id="population-status">
-                </div>
+            <div id="population-status"></div>
         </div>
 
         <div id="trends">
-            <div id="trend-display">
-                </div>
+            <div id="trend-display"></div>
             <button onclick="resetSimulation()">Reset Simulation</button>
         </div>
     </div>
 
     <div id="bottom-controls">
         <button id="brainteaser-button" onclick="showBrainteaser()">Brainteaser: Why are the bars different sizes?</button>
-        <div id="brainteaser-output">
-            </div>
+        <div id="brainteaser-output"></div>
     </div>
     
     <script>
         const LEVELS = ['Producer', 'Primary Consumer', 'Secondary Consumer'];
-        
-        const ORGANISMS = {
-            'Producer': 'Grass', 
-            'Primary Consumer': 'Rabbit', 
-            'Secondary Consumer': 'Fox'
-        };
-        
-        // Initial populations for the visual meter
-        let populations = {
-            'Producer': 70, 
-            'Primary Consumer': 50, 
-            'Secondary Consumer': 30
-        };
+        const ORGANISMS = { 'Producer': 'Grass', 'Primary Consumer': 'Rabbit', 'Secondary Consumer': 'Fox' };
+        let populations = { 'Producer': 70, 'Primary Consumer': 50, 'Secondary Consumer': 30 };
         
         const MAX_POPULATION = 100;
         const CLICK_SIZE = 10;
         const CASCADE_SIZE = 5;
 
-        // --- Core Functions ---
-
         function renderStatus() {
             const statusDiv = document.getElementById('population-status');
             statusDiv.innerHTML = '';
-            
             LEVELS.forEach(level => {
                 const div = document.createElement('div');
                 div.className = 'level';
-                
                 div.innerHTML = `
                     <h3>${level} (${ORGANISMS[level]})</h3>
                     <div class="buttons">
@@ -245,96 +206,58 @@
             calculateAndApplyCascade(level, delta); 
         }
 
-        function updatePopulation(level, delta) {
-            populations[level] = Math.max(0, Math.min(MAX_POPULATION, populations[level] + delta));
-        }
-
-        function getLevelIndex(level) {
-            return LEVELS.indexOf(level);
-        }
-
-        // --- Cascade Logic ---
-
         function calculateAndApplyCascade(changedLevel, delta) {
             const trendDiv = document.getElementById('trend-display');
             trendDiv.innerHTML = '<h2>Ecosystem Effects:</h2>'; 
-
-            const changedIndex = getLevelIndex(changedLevel);
+            const changedIndex = LEVELS.indexOf(changedLevel);
             const changeDirection = delta > 0 ? 1 : -1;
-            
             const results = [];
 
             LEVELS.forEach(level => {
                 let trend = 'is stable';
                 let reason = 'Stable';
                 let trendClass = 'stable';
-                let effectDirection = 0; 
-                let cascadeDelta = 0; 
+                let targetIndex = LEVELS.indexOf(level);
 
                 if (level === changedLevel) {
                     const action = delta > 0 ? 'increases' : 'decreases';
-                    results[getLevelIndex(level)] = { level, trend: action, reason: 'Manually changed', trendClass: action === 'increases' ? 'up' : 'down' };
+                    results[targetIndex] = { level, trend: action, reason: 'Manually changed', trendClass: action === 'increases' ? 'up' : 'down' };
                     return; 
                 }
 
-                const targetIndex = getLevelIndex(level);
                 const difference = targetIndex - changedIndex; 
-                
+                let effectDirection = 0;
+
                 if (difference > 0) { 
                     effectDirection = changeDirection;
                     reason = changeDirection > 0 ? "More Food" : "Less Food";
                 } else if (difference < 0) {
-                    const absoluteDifference = Math.abs(difference);
-
-                    if (absoluteDifference % 2 === 1) { 
+                    if (Math.abs(difference) % 2 === 1) { 
                         effectDirection = -changeDirection;
                         reason = effectDirection > 0 ? "Fewer Predators" : "More Predators";
                     } else { 
                         effectDirection = changeDirection;
-                        reason = effectDirection > 0 ? "Indirect Effect / Less Grazing" : "Indirect Effect / More Grazing";
+                        reason = effectDirection > 0 ? "Indirect Effect" : "Indirect Effect";
                     }
                 }
 
                 if (effectDirection !== 0) {
-                    cascadeDelta = effectDirection * CASCADE_SIZE;
-                    updatePopulation(level, cascadeDelta);
-                    
-                    if (effectDirection > 0) {
-                        trend = 'increases';
-                        trendClass = 'up';
-                    } else {
-                        trend = 'decreases';
-                        trendClass = 'down';
-                    }
+                    populations[level] = Math.max(0, Math.min(MAX_POPULATION, populations[level] + (effectDirection * CASCADE_SIZE)));
+                    trend = effectDirection > 0 ? 'increases' : 'decreases';
+                    trendClass = effectDirection > 0 ? 'up' : 'down';
                 }
-                
-                results[getLevelIndex(level)] = { level, trend, reason, trendClass };
+                results[targetIndex] = { level, trend, reason, trendClass };
             });
 
-            // 3. Display results in food chain order (Index 0 -> 1 -> 2)
             results.forEach(result => {
-                const currentPop = populations[result.level];
-                const percentage = Math.max(0, Math.min(100, (currentPop / MAX_POPULATION) * 100)); 
-
                 const p = document.createElement('p');
-                let trendText = result.trend;
-                let fullSentence = "";
-                
                 const organismName = `<strong class="organism">${result.level.toLowerCase()}</strong>`;
+                let sentence = result.reason === 'Manually changed' ? 
+                    `The number of ${organismName} was manually <strong class="${result.trendClass}">${result.trend}</strong>.` :
+                    `The number of ${organismName} <strong class="${result.trendClass}">${result.trend}</strong>.`;
 
-                if (result.trend !== 'Manually changed') {
-                    fullSentence = `The number of ${organismName} <strong class="${result.trendClass}">${trendText}</strong>.`;
-                } else {
-                    fullSentence = `The number of ${organismName} was manually <strong class="${result.trendClass}">${trendText}</strong>.`;
-                }
-
-                p.innerHTML = `
-                    <span>${fullSentence} 
-                    <br><small>Reason: ${result.reason}</small></span>
-                    <div class="population-meter" title="Current Level: ${currentPop}">
-                        <div class="bar" style="width: ${percentage}%;"></div>
-                    </div>
-                `;
+                p.innerHTML = `<span>${sentence}<br><small>Reason: ${result.reason}</small></span>
+                    <div class="population-meter"><div class="bar" style="width: ${(populations[result.level]/MAX_POPULATION)*100}%;"></div></div>`;
                 trendDiv.appendChild(p);
             });
         }
@@ -342,93 +265,13 @@
         function displayCurrentTrends() {
              const trendDiv = document.getElementById('trend-display');
              trendDiv.innerHTML = '<h2>Initial Population Status:</h2>';
-
              LEVELS.forEach(level => {
-                const currentPop = populations[level];
-                const percentage = Math.max(0, Math.min(100, (currentPop / MAX_POPULATION) * 100)); 
-                const organismName = `<strong class="organism">${level.toLowerCase()}</strong>`;
-
-
                 const p = document.createElement('p');
-                p.innerHTML = `
-                    <span>The number of ${organismName} is <strong class="stable">stable</strong></span>
-                    <div class="population-meter" title="Current Level: ${currentPop}">
-                        <div class="bar" style="width: ${percentage}%;"></div>
-                    </div>
-                `;
+                p.innerHTML = `<span>The number of <strong class="organism">${level.toLowerCase()}</strong> is <strong class="stable">stable</strong></span>
+                    <div class="population-meter"><div class="bar" style="width: ${(populations[level]/MAX_POPULATION)*100}%;"></div></div>`;
                 trendDiv.appendChild(p);
              });
         }
 
-        // --- Brainteaser and Learn More Functions ---
+        function show
 
-        /**
-         * Shows the brainteaser questions about energy flow.
-         */
-        function showBrainteaser() {
-            const outputDiv = document.getElementById('brainteaser-output');
-            outputDiv.innerHTML = `
-                <div class="question-box">
-                    <h3>Brainteaser: Energy Flow</h3>
-                    <p> Why are there usually far fewer **foxes** in an ecosystem than **rabbits** and **grass**?</p>
-                    <ol>
-                        <li>
-                            The number of organisms in each level (trophc level) is related to the amount of energy.
-                        </li>
-                        <li>
-                            Think about the energy moving from the grass to the fox. Why there is an energy loss?
-                        </li>
-                    </ol>
-                </div>
-                <button id="learn-more-button" onclick="showLearnMore()">I need help! Learn More about Energy Flow. </button>
-            `;
-             document.getElementById('brainteaser-button').style.display = 'none'; // Hide brainteaser button
-        }
-
-        /**
-         * Shows the link to an explanatory article.
-         */
-        function showLearnMore() {
-            const outputDiv = document.getElementById('brainteaser-output');
-            // Energy Flow in an Ecosystem
-            const articleLink = 'https://www.pbslearningmedia.org/resource/tdc02.sci.life.oate.energyflow/energy-flow/'; 
-            outputDiv.innerHTML = `
-                <div class="question-box" style="margin-top: 5px;">
-                    <h3>Article Explanation</h3>
-                    <p>Click the link to learn about the energy flow in ecosystem.</p>
-                    <a href="${articleLink}" target="_blank" style="display: block; padding: 10px; background-color: #00BCD4; color: white; text-align: center; border-radius: 4px; text-decoration: none;">Energy Flow in Ecosystem </a>
-                    <button style="margin-top: 10px;" onclick="resetBrainteaserSection()">Hide Questions</button>
-                </div>
-            `;
-        }
-
-        /**
-         * Resets the entire bottom section.
-         */
-        function resetBrainteaserSection() {
-            document.getElementById('brainteaser-output').innerHTML = '';
-            document.getElementById('brainteaser-button').style.display = 'block';
-        }
-
-
-        // --- Initialization and Reset ---
-
-        function resetSimulation() {
-            populations = {
-                'Producer': 70, 
-                'Primary Consumer': 50, 
-                'Secondary Consumer': 30
-            };
-            renderStatus();
-            resetBrainteaserSection(); // Reset the bottom section too
-            alert('Simulation Reset! Start a new experiment.');
-        }
-
-        // Initialize the game when the page loads
-        window.onload = function() {
-            renderStatus();
-        };
-    </script>
-</body>
-
-</html>
