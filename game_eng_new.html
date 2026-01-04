@@ -50,19 +50,19 @@
     <script>
         // 1. DATA: Define the characteristics for each vertebrate group
         const GROUPS = {
-            'Mammals': ['Body temperature does not change with surrounding', 'With hair/Fur', 'Gives birth to live young', 'Mammary glands', 'Lungs for breathing', 'With fins', 'With wings'],
-            'Birds': ['Body temperature does not change with surrounding', 'With feathers', 'Lay eggs', 'With a beak', 'Lungs for breathing', 'With wings'],
-            'Reptiles': ['Body temperature changes with surrounding', 'Dry scales', 'Lay eggs', 'Lungs for breathing'],
-            'Amphibians': ['Body temperature changes with surrounding', 'Moist, smooth skin', 'Lay eggs', 'Skin for breathing', 'Lungs for breathing', 'Gills for breathing'],
-            'Fish': ['Body temperature changes with surrounding', 'Wet scales', 'Lay eggs', 'With fins', 'Gills for breathing']
+            'Mammals': ['Body temperature does not change with surrounding', 'With hair/Fur', 'Gives birth to live young', 'With mammary glands', 'Use lungs for breathing', 'With wings'],
+            'Birds': ['Body temperature does not change with surrounding', 'With feathers', 'Lay eggs', 'With a beak', 'Use lungs for breathing', 'With wings'],
+            'Reptiles': ['Body temperature changes with surrounding', 'Dry scales', 'Lay eggs', 'Use lungs for breathing'],
+            'Amphibians': ['Body temperature changes with surrounding', 'Moist, smooth skin', 'Lay eggs', 'Use skin for breathing', 'Use lungs for breathing', 'Use gills for breathing'],
+            'Fish': ['Body temperature changes with surrounding', 'Wet scales', 'Lay eggs', 'With fins', 'Use gills for breathing']
         };
 
         // 2. DATA: The full list of characteristic options for the user
         const ALL_CHARACTERISTICS = [
             'Body temperature does not change with surrounding', 'Body temperature changes with surrounding', 'With hair/Fur', 'With feathers',
-            'Dry scales', 'Wet scales', 'Moist, smooth skin', 'Skin for breathing', 'Gills for breathing', 'Lungs for breathing',
+            'Dry scales', 'Wet scales', 'Moist, smooth skin', 'Use skin for breathing', 'Use gills for breathing', 'Use lungs for breathing',
             'Gives birth to live young', 'Lay eggs', 'With wings',
-            'Mammary glands', 'With a beak', 'With fins' 
+            'With mammary glands', 'With a beak', 'With fins' 
         ];
 
         // Function to dynamically create the characteristic checkboxes
@@ -146,4 +146,5 @@
         window.onload = renderCharacteristics;
     </script>
 </body>
+
 </html>
