@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Food Chain Simulator</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+            line-height: 1.6;
+        }
+        h1 { color: #2e7d32; text-align: center; }
+        .food-chain-diagram {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2e7d32;
+            padding: 15px;
+            border: 3px dashed #81c784;
+            border-radius: 10px;
+            background-color: #e8f5e9;
+        }
+        .container { display: flex; gap: 30px; margin-top: 20px; }
+        #controls, #trends {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+        .instruction { font-style: italic; color: #666; margin-bottom: 15px; }
+        .level { margin-bottom: 25px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .level h3 { margin-top: 0; color: #1b5e20; display: flex; justify-content: space-between; align-items: center; }
+        .buttons button { padding: 10px 15px; margin: 5px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
+        .buttons .increase { background-color: #4CAF50; color: white; }
+        .buttons .decrease { background-color: #f44336; color: white; }
+        
+        /* Impact Analysis Styles */
+        #trend-display p {
+            font-size: 1.1em; padding: 10px; margin: 8px 0;
+            border-left: 5px solid #2196F3; background-color: #e3f2fd;
+            display: flex; flex-direction: column;
+        }
+        #trend-display strong.up { color: #2e7d32; }
+        #trend-display strong.down { color: #d32f2f; }
+        
+        .population-meter {
+            width: 100%; height: 18px; background-color: #eee;
+            border-radius: 9px; overflow: hidden; border: 1px solid #bbb; margin-top: 8px;
+        }
+        .bar { height: 100%; background-color: #4db6ac; transition: width 0.6s ease; }
+        
+        #bottom-controls { margin-top: 20px; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); text-align: center; }
+        #brainteaser-button { background-color: #ff9800; color: white; padding: 15px 25px; font-size: 1.1em; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .question-box { padding: 20px; background-color: #fff3e0; border: 2px solid #ffe0b2; border-radius: 8px; margin-top: 15px; text-align: left; }
+        #reset-btn { display: block; width: 100%; margin-top: 15px; padding: 12px; background-color: #757575; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h1>Ecosystem: Visual Food Chain Simulator</h1>
+    
+    <div class="food-chain-diagram">
+        Producer (Grass) &longrightarrow; Primary Consumer (Rabbit) &longrightarrow; Secondary Consumer (Fox)
+    </div>
+
+    <div class="container">
+        <div id="controls">
+            <h2>Ecosystem Controls</h2>
+            <p class="instruction">Click buttons to change population levels:</p>
+            <div id="population-status"></div>
+        </div>
+
+        <div id="trends">
+            <h2>Ecological Impact Analysis</h2>
+            <div id="trend-display"></div>
+            <button id="reset-btn" onclick="resetSimulation()">Reset Simulation</button>
+        </div>
+    </div>
+
+    <div id="bottom-controls">
+        <button id="brainteaser-button" onclick="showBrainteaser()">
+            💡 Brainteaser: In nature, why is the number of foxes (secondary consumers) always much smaller than grass (producers)?
+        </button>
+        <div id="brainteaser-output"></div>
+    </div>
+
+    <script>
+        const LEVELS = ['Producer', 'Primary Consumer', 'Secondary Consumer'];
+        const ORGANISMS = {
+            'Producer': 'Grass', 
+            'Primary Consumer': 'Rabbit', 
+            'Secondary Consumer': 'Fox'
+        };
+        
+        let populations = { 'Producer': 80, 'Primary Consumer': 50, 'Secondary Consumer': 20 };
+        const MAX_POPULATION = 100;
+        const CLICK_SIZE = 15;
+        const CASCADE_SIZE = 8;
+
+        function renderStatus() {
+            const statusDiv = document.getElementById('population-status');
+            if (!statusDiv) return;
+            statusDiv.innerHTML = '';
+            
+            LEVELS.forEach(level => {
+                const div = document.createElement('div');
+                div.className = 'level';
+                div.innerHTML = '<h3>' + level + ' (' + ORGANISMS[level] + ')</h3>' +
+                    '<div class="buttons">' +
+                        '<button class="increase" onclick="userChangePopulation(\'' + level + '\', ' + CLICK_SIZE + ')">Increase ↑</button>' +
+                        '<button class="decrease" onclick="userChangePopulation(\'' + level + '\', -' + CLICK_SIZE + ')">Decrease ↓</button>' +
+                    '</div>';
+                statusDiv.appendChild(div);
+            });
+            displayInitialStatus();
+        }
+
+        function userChangePopulation(level, delta) {
+            populations[level] = Math.max(0, Math.min(MAX_POPULATION, populations[level] + delta)); 
+            calculateAndApplyCascade(level, delta); 
+        }
+
+        function calculateAndApplyCascade(changedLevel, delta) {
+            const trendDiv = document.getElementById('trend-display');
+            trendDiv.innerHTML = '<h3>Impact Analysis:</h3>'; 
+
+            const changedIndex = LEVELS.indexOf(changedLevel);
+            const changeDirection = delta > 0 ? 1 : -1;
+            
+            LEVELS.forEach((level, targetIndex) => {
+                let trendText = "";
+                let reason = "";
+                let trendClass = "";
+                let effectDirection = 0;
+
+                if (level === changedLevel) {
+                    trendText = delta > 0 ? "increases" : "decreases";
+                    reason = "Manual change by user";
+                    trendClass = delta > 0 ? "up" : "down";
+                } else {
+                    const diff = targetIndex - changedIndex;
+                    if (diff > 0) { 
+                        effectDirection = changeDirection;
+                        reason = changeDirection > 0 ? "More food" : "Fewer food";
+                    } else { 
+                        if (Math.abs(diff) === 1) {
+                            effectDirection = -changeDirection;
+                            reason = effectDirection > 0 ? "Fewer predators" : "More predators";
+                        } else {
+                            effectDirection = changeDirection;
+                            reason = "Ecological chain reaction";
+                        }
+                    }
+
+                    if (effectDirection !== 0) {
+                        populations[level] = Math.max(0, Math.min(MAX_POPULATION, populations[level] + (effectDirection * CASCADE_SIZE)));
+                        trendText = effectDirection > 0 ? "increases" : "decreases";
+                        trendClass = effectDirection > 0 ? "up" : "down";
+                    }
+                }
+
+                const currentPop = populations[level];
+                const percentage = (currentPop / MAX_POPULATION) * 100;
+                const p = document.createElement('p');
+                // Updated label format: Number of Producer (Grass)
+                p.innerHTML = '<span><strong>Number of ' + level + ' (' + ORGANISMS[level] + ')</strong> ' + 
+                    '<strong class="' + trendClass + '">' + trendText + '</strong></span>' +
+                    '<small>Reason: ' + reason + '</small>' +
+                    '<div class="population-meter"><div class="bar" style="width: ' + percentage + '%;"></div></div>';
+                trendDiv.appendChild(p);
+            });
+        }
+
+        function displayInitialStatus() {
+            const trendDiv = document.getElementById('trend-display');
+            if (!trendDiv) return;
+            trendDiv.innerHTML = '<h3>Current Status:</h3>';
+            LEVELS.forEach(level => {
+                const percentage = (populations[level] / MAX_POPULATION) * 100;
+                const p = document.createElement('p');
+                p.innerHTML = '<span><strong>Number of ' + level + ' (' + ORGANISMS[level] + ')</strong> is currently stable</span>' +
+                    '<div class="population-meter"><div class="bar" style="width: ' + percentage + '%;"></div></div>';
+                trendDiv.appendChild(p);
+            });
+        }
+
+        function showBrainteaser() {
+            const outputDiv = document.getElementById('brainteaser-output');
+            outputDiv.innerHTML = '<div class="question-box">' +
+                '<h3>💡 Science Challenge: Energy Flow</h3>' +
+                '<p>In nature, why is the number of foxes (secondary consumers) always much smaller than grass (producers)?</p>' +
+                '<ul>' +
+                    '<li><strong>Energy Loss:</strong> When energy passes from one level to the next, only about <strong>10%</strong> is passed on.</li>' +
+                    '<li><strong>Where does it go?</strong> Organisms use energy for <strong>respiration</strong> (moving, growing) and lose energy as <strong>heat</strong>.</li>' +
+                    '<li><strong>Conclusion:</strong> Energy decreases as you move up the food chain, so fewer organisms can be supported at the top.</li>' +
+                '</ul>' +
+                '<button onclick="resetBrainteaserSection()" style="padding:5px 10px; cursor:pointer;">Hide Answer</button>' +
+                '</div>';
+            document.getElementById('brainteaser-button').style.display = 'none';
+        }
+
+        function resetBrainteaserSection() {
+            document.getElementById('brainteaser-output').innerHTML = '';
+            document.getElementById('brainteaser-button').style.display = 'inline-block';
+        }
+
+        function resetSimulation() {
+            populations = { 'Producer': 80, 'Primary Consumer': 50, 'Secondary Consumer': 20 };
+            renderStatus();
+            resetBrainteaserSection();
+            alert('Simulation Reset: Balanced state restored.');
+        }
+
+        // Reliable initialization
+        window.onload = renderStatus;
+    </script>
+</body>
+</html>
